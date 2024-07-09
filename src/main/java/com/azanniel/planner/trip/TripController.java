@@ -4,6 +4,7 @@ import com.azanniel.planner.participant.ParticipantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,13 +22,15 @@ public class TripController {
     private TripRepository tripRepository;
 
     @PostMapping
-    public ResponseEntity<TripCreateResponse> createTrip(@RequestBody TripRequestPayload payload) {
+    public ResponseEntity<TripCreateResponse> createTrip(@RequestBody TripRequestPayload payload, UriComponentsBuilder uriComponentsBuilder) {
         Trip newTrip = new Trip(payload);
 
         this.tripRepository.save(newTrip);
         this.participantService.registerParticipantToTrip(payload.emails_to_invite(), newTrip.getId());
 
-        return ResponseEntity.ok(new TripCreateResponse(newTrip.getId()));
+        var uri = uriComponentsBuilder.path("/trips/{id}").buildAndExpand(newTrip.getId()).toUri();
+
+        return ResponseEntity.created(uri).body(new TripCreateResponse(newTrip.getId()));
     }
 
     @GetMapping("/{id}")
@@ -52,6 +55,23 @@ public class TripController {
         rawTrip.setEndsAt(LocalDateTime.parse(payload.ends_at(), DateTimeFormatter.ISO_DATE_TIME));
 
         this.tripRepository.save(rawTrip);
+
+        return ResponseEntity.ok(rawTrip);
+    }
+
+    @PatchMapping("/{id}/confirm")
+    public ResponseEntity<Trip> confirmTrip(@PathVariable UUID id) {
+        Optional<Trip> trip = this.tripRepository.findById(id);
+
+        if(trip.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Trip rawTrip = trip.get();
+        rawTrip.setIsConfirmed(true);
+
+        this.tripRepository.save(rawTrip);
+        this.participantService.triggerConfirmationEmailToParticipants(rawTrip.getId());
 
         return ResponseEntity.ok(rawTrip);
     }

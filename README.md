@@ -16,7 +16,7 @@ Após clonar o projeto com git clone, siga os passos:
 
 Utilize o Insomnia para testar as requisições da aplicação.
 
-[![Run in Insomnia}](https://insomnia.rest/images/run.svg)](https://insomnia.rest/run/?label=Plann.er&uri=https%3A%2F%2Fgithub.com%2FAzanniel%2Fplanner-java%2Fblob%2Fmain%2FInsomnia_2024-07-09.json)
+[![Run in Insomnia}](https://insomnia.rest/images/run.svg)](https://insomnia.rest/run/?label=Plann.er&uri=https%3A%2F%2Fgithub.com%2FAzanniel%2Fplanner-java%2Fblob%2Fmain%2FInsomnia.json)
 
 ## ✨ Requisitos funcionais
 
