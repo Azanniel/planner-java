@@ -1,6 +1,7 @@
 package com.azanniel.planner.trip;
 
 import com.azanniel.planner.participant.ParticipantCreateResponse;
+import com.azanniel.planner.participant.ParticipantData;
 import com.azanniel.planner.participant.ParticipantRequestPayload;
 import com.azanniel.planner.participant.ParticipantService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,6 +42,20 @@ public class TripController {
         Optional<Trip> trip = this.tripRepository.findById(id);
 
         return trip.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/participants")
+    public ResponseEntity<List<ParticipantData>> getAllParticipants(@PathVariable UUID id) {
+        Optional<Trip> trip = this.tripRepository.findById(id);
+
+        if(trip.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Trip rawTrip = trip.get();
+        List<ParticipantData> participants = this.participantService.getAllParticipantsFromEvent(rawTrip.getId());
+
+        return ResponseEntity.ok(participants);
     }
 
     @PutMapping("/{id}")
