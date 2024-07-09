@@ -1,5 +1,7 @@
 package com.azanniel.planner.trip;
 
+import com.azanniel.planner.participant.ParticipantCreateResponse;
+import com.azanniel.planner.participant.ParticipantRequestPayload;
 import com.azanniel.planner.participant.ParticipantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +28,7 @@ public class TripController {
         Trip newTrip = new Trip(payload);
 
         this.tripRepository.save(newTrip);
-        this.participantService.registerParticipantToTrip(payload.emails_to_invite(), newTrip);
+        this.participantService.registerParticipantsToTrip(payload.emails_to_invite(), newTrip);
 
         var uri = uriComponentsBuilder.path("/trips/{id}").buildAndExpand(newTrip.getId()).toUri();
 
@@ -74,5 +76,24 @@ public class TripController {
         this.participantService.triggerConfirmationEmailToParticipants(rawTrip.getId());
 
         return ResponseEntity.ok(rawTrip);
+    }
+
+    @PostMapping("/{id}/invite")
+    public ResponseEntity<ParticipantCreateResponse> inviteParticipant(@PathVariable UUID id, @RequestBody ParticipantRequestPayload payload) {
+        Optional<Trip> trip = this.tripRepository.findById(id);
+
+        if(trip.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Trip rawTrip = trip.get();
+
+        ParticipantCreateResponse participantCreateResponse = this.participantService.registerParticipantToTrip(payload.email(), rawTrip);
+
+        if(rawTrip.getIsConfirmed()) {
+            this.participantService.triggerConfirmationEmailToParticipant(payload.email());
+        }
+
+        return ResponseEntity.ok(participantCreateResponse);
     }
 }
