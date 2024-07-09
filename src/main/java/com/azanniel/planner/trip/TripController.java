@@ -26,7 +26,7 @@ public class TripController {
         Trip newTrip = new Trip(payload);
 
         this.tripRepository.save(newTrip);
-        this.participantService.registerParticipantToTrip(payload.emails_to_invite(), newTrip.getId());
+        this.participantService.registerParticipantToTrip(payload.emails_to_invite(), newTrip);
 
         var uri = uriComponentsBuilder.path("/trips/{id}").buildAndExpand(newTrip.getId()).toUri();
 
