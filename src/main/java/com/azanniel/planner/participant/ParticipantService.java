@@ -13,7 +13,7 @@ public class ParticipantService {
     @Autowired
     private ParticipantRepository participantRepository;
 
-    public List<ParticipantData> getAllParticipantsFromEvent(UUID tripId) {
+    public List<ParticipantData> getAllParticipantsFromTrip(UUID tripId) {
         return this.participantRepository
                 .findByTripId(tripId)
                 .stream()

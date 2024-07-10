@@ -1,5 +1,13 @@
 package com.azanniel.planner.trip;
 
+import com.azanniel.planner.activity.ActivityData;
+import com.azanniel.planner.activity.ActivityRequestPayload;
+import com.azanniel.planner.activity.ActivityResponse;
+import com.azanniel.planner.activity.ActivityService;
+import com.azanniel.planner.link.LinkData;
+import com.azanniel.planner.link.LinkRequestPayload;
+import com.azanniel.planner.link.LinkResponse;
+import com.azanniel.planner.link.LinkService;
 import com.azanniel.planner.participant.ParticipantCreateResponse;
 import com.azanniel.planner.participant.ParticipantData;
 import com.azanniel.planner.participant.ParticipantRequestPayload;
@@ -18,6 +26,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/trips")
 public class TripController {
+
+    @Autowired
+    private LinkService linkService;
+
+    @Autowired
+    private ActivityService activityService;
 
     @Autowired
     private ParticipantService participantService;
@@ -53,7 +67,7 @@ public class TripController {
         }
 
         Trip rawTrip = trip.get();
-        List<ParticipantData> participants = this.participantService.getAllParticipantsFromEvent(rawTrip.getId());
+        List<ParticipantData> participants = this.participantService.getAllParticipantsFromTrip(rawTrip.getId());
 
         return ResponseEntity.ok(participants);
     }
@@ -111,5 +125,63 @@ public class TripController {
         }
 
         return ResponseEntity.ok(participantCreateResponse);
+    }
+
+    @GetMapping("/{id}/activities")
+    public ResponseEntity<List<ActivityData>> getAllActivities(@PathVariable UUID id) {
+        Optional<Trip> trip = this.tripRepository.findById(id);
+
+        if(trip.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Trip rawTrip = trip.get();
+
+        List<ActivityData> activityDataList = this.activityService.getAllActivitiesFromTrip(rawTrip.getId());
+
+        return ResponseEntity.ok(activityDataList);
+    }
+
+    @PostMapping("/{id}/activities")
+    public ResponseEntity<ActivityResponse> registerActivity(@PathVariable UUID id, @RequestBody ActivityRequestPayload payload) {
+        Optional<Trip> trip = this.tripRepository.findById(id);
+
+        if(trip.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Trip rawTrip = trip.get();
+        ActivityResponse activityResponse =this.activityService.createActivity(payload, rawTrip);
+
+        return ResponseEntity.ok(activityResponse);
+    }
+
+    @GetMapping("/{id}/links")
+    public ResponseEntity<List<LinkData>> getAllLinks(@PathVariable UUID id) {
+        Optional<Trip> trip = this.tripRepository.findById(id);
+
+        if(trip.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Trip rawTrip = trip.get();
+
+        List<LinkData> linksResponse = this.linkService.getAllLinksFromTrip(rawTrip.getId());
+
+        return ResponseEntity.ok(linksResponse);
+    }
+
+    @PostMapping("/{id}/links")
+    public ResponseEntity<LinkResponse> registerLink(@PathVariable UUID id, @RequestBody LinkRequestPayload payload) {
+        Optional<Trip> trip = this.tripRepository.findById(id);
+
+        if(trip.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Trip rawTrip = trip.get();
+        LinkResponse linkResponse = this.linkService.createLink(payload, rawTrip);
+
+        return ResponseEntity.ok(linkResponse);
     }
 }
